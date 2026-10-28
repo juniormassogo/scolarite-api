@@ -5,7 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock; 
+import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
  
@@ -21,5 +22,15 @@ class EtudiantControllerTest {
         List<Etudiant> resultat = controller.lister(); 
         assertEquals(1, resultat.size()); 
         assertEquals("Mballa", resultat.get(0).getNom()); 
+    }
+     @Test
+    void creerEnregistreEtRetourneLEtudiant() {
+        Etudiant etudiant = new Etudiant("Mballa", "Jean", "jean@mail.cm");
+        when(repository.save(etudiant)).thenReturn(etudiant);
+
+        Etudiant resultat = controller.creer(etudiant);
+
+        assertEquals("Jean", resultat.getPrenom());
+        verify(repository).save(etudiant);
     } 
 }
