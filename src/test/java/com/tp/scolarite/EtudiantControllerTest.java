@@ -1,0 +1,25 @@
+package com.tp.scolarite; 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock; 
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+ 
+@ExtendWith(MockitoExtension.class) 
+class EtudiantControllerTest { 
+    @Mock EtudiantRepository repository; 
+    @InjectMocks EtudiantController controller; 
+ 
+    @Test 
+    void listerRetourneLesEtudiants() { 
+        when(repository.findAll()) 
+            .thenReturn(List.of(new Etudiant("Mballa", "Jean", "jean@mail.cm"))); 
+        List<Etudiant> resultat = controller.lister(); 
+        assertEquals(1, resultat.size()); 
+        assertEquals("Mballa", resultat.get(0).getNom()); 
+    } 
+}
