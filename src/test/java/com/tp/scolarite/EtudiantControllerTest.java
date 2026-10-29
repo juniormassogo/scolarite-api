@@ -33,4 +33,14 @@ class EtudiantControllerTest {
         assertEquals("Jean", resultat.getPrenom());
         verify(repository).save(etudiant);
     } 
+       @Test
+    void creerEnregistreLEtudiant() {
+        Etudiant etudiant = new Etudiant("Ngono", "Marie", "marie@mail.cm");
+        when(repository.save(etudiant)).thenReturn(etudiant);
+
+        Etudiant resultat = controller.creer(etudiant);
+
+        assertEquals("Ngono", resultat.getNom());
+        verify(repository).save(etudiant);
+    } 
 }
