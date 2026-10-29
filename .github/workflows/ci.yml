@@ -18,7 +18,15 @@ jobs:
  
       - run: ./mvnw -B verify 
  
-      - uses: actions/upload-artifact@v4 
-        with: 
-          name: application-jar 
-          path: target/*.jar 
+      - name: Resume de la couverture
+        run: |
+          awk -F, 'NR>1 {m+=$4; c+=$5} END {printf "Couverture des instructions : %.1f%%\n", c*100/(m+c)}' target/site/jacoco/jacoco.csv | tee -a $GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: application-jar
+          path: target/*.jar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rapport-jacoco
+          path: target/site/jacoco
+      
