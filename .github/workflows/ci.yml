@@ -1,23 +1,23 @@
-name: CI 
- 
-on: [push, pull_request] 
- 
-jobs: 
-  build-test: 
-    runs-on: ubuntu-latest 
-    steps: 
-      - uses: actions/checkout@v4 
- 
-      - uses: actions/setup-java@v4 
-        with: 
-          distribution: temurin 
-          java-version: 21 
-          cache: maven 
- 
-      - run: chmod +x mvnw 
- 
-      - run: ./mvnw -B verify 
- 
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - run: chmod +x mvnw
+
+      - run: ./mvnw -B verify
+
       - name: Resume de la couverture
         run: |
           awk -F, 'NR>1 {m+=$4; c+=$5} END {printf "Couverture des instructions : %.1f%%\n", c*100/(m+c)}' target/site/jacoco/jacoco.csv | tee -a $GITHUB_STEP_SUMMARY
@@ -29,4 +29,30 @@ jobs:
         with:
           name: rapport-jacoco
           path: target/site/jacoco
-      
+
+  docker:
+    needs: build-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: nom
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.nom.outputs.image }}:${{ github.sha }}
+            ${{ steps.nom.outputs.image }}:latest
