@@ -40,6 +40,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: application-jar
+          path: target
+
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -49,10 +54,31 @@ jobs:
       - id: nom
         run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
-      - uses: docker/build-push-action@v6
+      - name: Construction de l'image (sans publication)
+        uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          load: true
+          push: false
           tags: |
             ${{ steps.nom.outputs.image }}:${{ github.sha }}
             ${{ steps.nom.outputs.image }}:latest
+
+      - name: Test de demarrage
+        run: |
+          docker run -d --name test-demarrage -p 8080:8080 ${{ steps.nom.outputs.image }}:${{ github.sha }}
+          for i in $(seq 1 40); do
+            if curl -fs http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
+              echo "Application demarree : health UP"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "L'application n'a pas demarre"
+          docker logs test-demarrage
+          exit 1
+
+      - name: Publication
+        run: |
+          docker push ${{ steps.nom.outputs.image }}:${{ github.sha }}
+          docker push ${{ steps.nom.outputs.image }}:latest
