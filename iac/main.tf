@@ -74,3 +74,25 @@ resource "docker_container" "app" {
 
   depends_on = [docker_container.db]
 }
+
+resource "docker_image" "adminer" {
+  name         = "adminer:latest"
+  keep_locally = true
+}
+
+resource "docker_container" "adminer" {
+  name    = "scolarite-adminer"
+  image   = docker_image.adminer.image_id
+  restart = "unless-stopped"
+
+  networks_advanced {
+    name = docker_network.reseau.name
+  }
+
+  ports {
+    internal = 8080
+    external = 8082
+  }
+
+  depends_on = [docker_container.db]
+}
